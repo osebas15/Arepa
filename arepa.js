@@ -1,40 +1,64 @@
-import React from 'react'
+import React, {Component} from 'react'
 import {View, StyleSheet} from 'react-native'
 
-class Arepa{
-  views = []
 
-  constructor(views, flavors){
-    if (views){
-      if (Array.isArray(views)){
-        this.views = views
-      }
-      else {
-        this.views = [views]
-      }
+class Arepa extends Component {
+  constructor(props){
+    super(props)
+    let isPage =
+      Array.isArray(props.children) &&
+      props.children.find(child => Array.isArray(child)) != undefined
+
+    this.state = {
+      isPage : isPage
     }
-    this.flavors = flavors
   }
 
-  toJSX = () => {
-    let views = this.views.forEach((a) => {
-      if (a instanceof Arepa){
-        return a.toJSX()
-      }
-      else {
-        return a
-      }
-    })
+  getDirectionStyle(direction) {
+    if (direction == 'vertical' || this.state.isPage){
+      return {flexDirection : 'column'}
+    }
+    else {
+      return {flexDirection : 'row'}
+    }
+  }
 
-    var toReturn = <View></View>
-    if (this.views.count == 1){
-      toReturn = views[0]
+  getStyle() {
+    return {
+      ...Arepa.styles.default,
+      ...this.getDirectionStyle(this.props.direction),
+      ...this.props.style
     }
-    else if (this.views.count > 1){
-      toReturn = <View>{views}</View>
-    }
-    console.log('cookie',toReturn)
+  }
+
+  makeChildren() {
+    let {
+      children,
+      direction
+    } = this.props
+    //check for arrays and arrays with arrays
+    var toReturn =
+      !Array.isArray(children) ?
+      children :
+      children.map(child => {
+        if (Array.isArray(child)) {
+          //console.log('copy',<Arepa direction={'horizontal'}>{child}</Arepa>)
+          return <Arepa direction={'horizontal'}>{child}</Arepa>
+        }
+        else {
+          console.log('marginal', child)
+          return child
+        }
+      })
+
+    //console.log('returning', toReturn)
     return toReturn
+  }
+
+  render(){
+    return (
+      <View style={this.getStyle()}>{this.makeChildren()}</View>
+    )
   }
 }
 
