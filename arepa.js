@@ -1,8 +1,9 @@
 import React, {Component} from 'react'
 import {View, StyleSheet} from 'react-native'
+import ShapeBase from './ArepaShapes.js'
 
 
-class Arepa extends Component {
+export default class Arepa extends Component {
   constructor(props){
     super(props)
     let isPage =
@@ -15,57 +16,82 @@ class Arepa extends Component {
   }
 
   getDirectionStyle(direction) {
-    if (direction == 'vertical' || this.state.isPage){
-      return {flexDirection : 'column'}
+    if (direction == 'horizontal'){
+      return {flexDirection : 'row'}
     }
     else {
-      return {flexDirection : 'row'}
+      return {flexDirection : 'column'}
     }
   }
 
   getStyle() {
+    let {
+      style
+    } = this.props
+
+    console.log('here',style)
+
     return {
-      ...Arepa.styles.default,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      backgroundColor: 'green',
       ...this.getDirectionStyle(this.props.direction),
-      ...this.props.style
+      ...(style ? style : {})
     }
   }
 
   makeChildren() {
     let {
       children,
-      direction
+      direction,
+      shape
     } = this.props
-    //check for arrays and arrays with arrays
+
+    //check for arrays, and arrays with arrays
     var toReturn =
+      children == null ?
+      <View style={{flex: 1}}></View> :
       !Array.isArray(children) ?
       children :
-      children.map(child => {
+      children.map((child, index) => {
+        let shapeStyle = shape ? shape.getStyle(index, children.length) : {}
         if (Array.isArray(child)) {
-          //console.log('copy',<Arepa direction={'horizontal'}>{child}</Arepa>)
-          return <Arepa direction={'horizontal'}>{child}</Arepa>
+            return <Arepa direction={'horizontal'} style={shapeStyle}>{child}</Arepa>
         }
         else {
-          console.log('marginal', child)
-          return child
+          let {
+            style
+          } = (child.props ? child.props : {})
+
+          //console.warn('here',child.props, style)
+          return React.cloneElement(
+            child,
+            {
+              style: {
+                ...shapeStyle,
+                ...(style ? style : {})
+              }
+            }
+          )
         }
       })
 
-    //console.log('returning', toReturn)
+    console.log('so', toReturn)
+
     return toReturn
   }
 
   render(){
+    let {
+      children,
+      direction,
+      style,
+      ...otherProps
+    } = this.props
+
     return (
-      <View style={this.getStyle()}>{this.makeChildren()}</View>
+      <View {...otherProps} style={this.getStyle()}>{this.makeChildren()}</View>
     )
   }
 }
-
-Arepa.styles = StyleSheet.create({
-  default: {
-    flexDirection: 'row'
-  }
-})
-
-export default Arepa
